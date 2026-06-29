@@ -18,8 +18,8 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # === Railway/Environment Config ===
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-ADMIN_ID = int(os.environ.get("ADMIN_ID", "123456789"))
+BOT_TOKEN = "8924331635:AAF7eqaMnLBWWDgjDI2nKXryHj3Ji2Zwkwk"
+ADMIN_ID = 8664786550
 PORT = int(os.environ.get("PORT", "8080"))
 
 try:
@@ -402,7 +402,6 @@ def generate_card_from_bin(bin_prefix, length=16):
 def check_card_live(card_number, month, year, cvv):
     results = []
     
-    # Gateway 1: Stripe
     try:
         resp = requests.post(
             "https://api.stripe.com/v1/tokens",
@@ -437,7 +436,6 @@ def check_card_live(card_number, month, year, cvv):
     
     time.sleep(0.5)
     
-    # Gateway 2: Checkout.com
     try:
         resp = requests.post(
             "https://api.checkout.com/tokens",
@@ -945,8 +943,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ============ MAIN ============ #
 def main():
-    """Run the bot with webhook for Railway deployment"""
-    
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     
     app.add_handler(CommandHandler("start", start))
@@ -954,11 +950,9 @@ def main():
     app.add_handler(CallbackQueryHandler(handle_inline))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     
-    # Railway uses PORT env variable
     railway_url = os.environ.get("RAILWAY_STATIC_URL", None)
     
     if railway_url:
-        # Webhook mode for Railway
         WEBHOOK_URL = f"https://{railway_url}/webhook"
         print(f"🤖 Starting webhook on {WEBHOOK_URL}")
         app.run_webhook(
@@ -968,7 +962,6 @@ def main():
             webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}"
         )
     else:
-        # Polling mode for local testing
         print("🤖 HackerCard Ultimate v3.0 running in polling mode...")
         print(f"⚡ Bot ready! Press Ctrl+C to stop.")
         app.run_polling(allowed_updates=Update.ALL_TYPES)
